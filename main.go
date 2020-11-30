@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"org.tubetrue01/domain-update/config"
+	"os"
 	"time"
 )
 
@@ -16,16 +17,6 @@ var cache = make(map[string]string, 1)
 var command = &config.Config{}
 
 func main() {
-	flag.StringVar(&command.AccessKeyID, "k", "", "AccessKeyId")
-	flag.StringVar(&command.AccessKeySecret, "s", "", "AccessKeySecret")
-	flag.StringVar(&command.Domain, "d", "", "Domain")
-	flag.Parse()
-
-	if command.AccessKeyID == "" || command.AccessKeySecret == "" || command.Domain == "" {
-		flag.Usage()
-		return
-	}
-
 	task(command)
 }
 
@@ -131,4 +122,17 @@ func task(config *config.Config) {
 			}
 		}
 	}
+}
+
+func init() {
+	flag.StringVar(&command.AccessKeyID, "k", "", "AccessKeyId")
+	flag.StringVar(&command.AccessKeySecret, "s", "", "AccessKeySecret")
+	flag.StringVar(&command.Domain, "d", "", "Domain")
+	flag.Parse()
+
+	if command.AccessKeyID == "" || command.AccessKeySecret == "" || command.Domain == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 }

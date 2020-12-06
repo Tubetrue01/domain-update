@@ -20,7 +20,7 @@ func UpdateIpPool(ip string) {
 
 // ObtainPubIp 获取公网 ip 地址
 func ObtainPubIp() string {
-	resp, err := http.Get("https://myexternalip.com/raw")
+	resp, err := http.Get("http://ip.cip.cc")
 	if err != nil {
 		return ""
 	}

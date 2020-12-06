@@ -17,8 +17,9 @@ func main() {
 
 // task 执行定时任务，根据需要定期更新域名解析
 func task(config *config.Config) {
-	tick := time.Tick(time.Second * time.Duration(10))
+	tick := time.Tick(time.Second * time.Duration(1*60*60))
 	for {
+		log.Println("定时任务开始...")
 		select {
 		case <-tick:
 			pubIp := util.ObtainPubIp()

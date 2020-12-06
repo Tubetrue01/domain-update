@@ -1,21 +1,18 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"org.tubetrue01/domain-update/config"
 	"org.tubetrue01/domain-update/notify"
 	"org.tubetrue01/domain-update/util"
-	"os"
 	"time"
 )
 
-var command = &config.Config{}
+var command *config.Config
+var doNotify notify.Notify
 
 func main() {
-	//task(command)
-	notify.SendEmail(command, "192.168.0.2.1")
-
+	task(command)
 }
 
 // task 执行定时任务，根据需要定期更新域名解析
@@ -29,38 +26,25 @@ func task(config *config.Config) {
 			if ip, exists := util.ObtainIpFromPool(); exists {
 				log.Printf("ip 已存在，当前值为：%s, 当前本机公网 ip 为：%s\n", ip, pubIp)
 				if ip != pubIp {
-					log.Println("ip 已经更改，准备更新域名解析...")
-					subDomain := notify.ObtainDomain(config)
-					subDomain.Value = pubIp
-					util.Update(subDomain, config, pubIp)
-				}
-			} else {
-				record := notify.ObtainDomain(config)
-				ipFromDomain := record.Value
-
-				if pubIp != ipFromDomain {
-					log.Println("公网 ip 与域名 ip 不符，即将更新域名 ip...")
-					record.Value = pubIp
-					util.Update(record, config, pubIp)
-				} else {
+					log.Printf("ip 地址已经发生变化，准备进行推送...")
+					doNotify.DoNotify(config, pubIp)
 					util.UpdateIpPool(pubIp)
 				}
+			} else {
+				log.Printf("ip 并不存在， 更新 ip 池...")
+				util.UpdateIpPool(pubIp)
+				doNotify.DoNotifyBefore(config, pubIp)
 			}
 		}
 	}
 }
 
 func init() {
-	flag.StringVar(&command.AccessKeyID, "k", "", "AccessKeyId")
-	flag.StringVar(&command.AccessKeySecret, "s", "", "AccessKeySecret")
-	flag.StringVar(&command.Domain, "d", "", "Domain")
-	flag.StringVar(&command.Email, "e", "", "QQ Email")
-	flag.StringVar(&command.EmailAuthCode, "a", "", "authCode of Email")
-	flag.Parse()
-
-	if command.AccessKeyID == "" || command.AccessKeySecret == "" || command.Domain == "" {
-		flag.Usage()
-		os.Exit(1)
+	command = config.ObtainCommand()
+	if command.IsEmail {
+		doNotify = &notify.Mail{}
+	} else {
+		doNotify = &notify.Domain{}
 	}
 
 }

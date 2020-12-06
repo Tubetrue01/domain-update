@@ -1,11 +1,8 @@
 package util
 
 import (
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/alidns"
 	"io/ioutil"
 	"net/http"
-	"org.tubetrue01/domain-update/config"
-	"org.tubetrue01/domain-update/notify"
 )
 
 var cache = make(map[string]string, 1)
@@ -30,10 +27,4 @@ func ObtainPubIp() string {
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
 	return string(content)
-}
-
-// Update 更新域名解析以及本地缓存
-func Update(subDomain *alidns.Record, config *config.Config, externalIp string) {
-	notify.UpdateDomain(subDomain, config)
-	UpdateIpPool(externalIp)
 }

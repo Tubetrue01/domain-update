@@ -7,6 +7,31 @@ import (
 	"org.tubetrue01/domain-update/config"
 )
 
+type Domain struct {
+}
+
+// DoNotify 完成通知的具体逻辑
+func (d *Domain) DoNotify(config *config.Config, content interface{}) {
+	log.Println("ip 已经更改，准备更新...")
+	pubIp := content.(string)
+	subDomain := ObtainDomain(config)
+	subDomain.Value = pubIp
+	UpdateDomain(subDomain, config)
+}
+
+// DoNotifyBefore 执行通知前的预处理操作
+func (d *Domain) DoNotifyBefore(config *config.Config, content interface{}) {
+	record := ObtainDomain(config)
+	ipFromDomain := record.Value
+	pubIp := content.(string)
+
+	if pubIp != ipFromDomain {
+		log.Println("公网 ip 与域名 ip 不符，即将更新域名 ip...")
+		record.Value = pubIp
+		UpdateDomain(record, config)
+	}
+}
+
 // ObtainDomain 获取域名信息
 func ObtainDomain(config *config.Config) *alidns.Record {
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", config.AccessKeyID, config.AccessKeySecret)

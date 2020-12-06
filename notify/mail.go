@@ -14,8 +14,10 @@ const (
 	smtpPort = "25"
 )
 
-// SendEmail 发送信息到指定的邮箱（目前只支持 qq 邮箱）
-func SendEmail(config *config.Config, content string) {
+type Mail struct{}
+
+// DoNotify 发送 Email 信息
+func (m *Mail) DoNotify(config *config.Config, content interface{}) {
 	e := email.NewEmail()
 	e.From = config.Email
 	e.To = []string{config.Email}
@@ -28,4 +30,10 @@ func SendEmail(config *config.Config, content string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+}
+
+// DoNotifyBefore 执行通知前的预处理操作
+func (m *Mail) DoNotifyBefore(config *config.Config, content interface{}) {
+	m.DoNotify(config, content)
 }

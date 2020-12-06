@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"os"
+	"log"
 )
 
 type Config struct {
@@ -11,6 +11,7 @@ type Config struct {
 	Domain          string
 	Email           string
 	EmailAuthCode   string
+	IsEmail         bool
 }
 
 var command = &Config{}
@@ -23,12 +24,15 @@ func init() {
 	flag.StringVar(&command.EmailAuthCode, "a", "", "authCode of Email")
 	flag.Parse()
 
-	if !(command.AccessKeyID != "" && command.AccessKeySecret != "" && command.Domain != "" ||
-		command.Email != "" && command.EmailAuthCode != "") {
-
+	if command.AccessKeyID != "" && command.AccessKeySecret != "" && command.Domain != "" &&
+		(command.Email == "" || command.EmailAuthCode == "") {
+		command.IsEmail = false
+	} else if command.Email != "" && command.EmailAuthCode != "" &&
+		(command.AccessKeyID == "" || command.AccessKeySecret == "" || command.Domain == "") {
+		command.IsEmail = true
+	} else {
 		flag.Usage()
-		os.Exit(1)
-
+		log.Panic("域名跟 Email 不能同时使用")
 	}
 }
 

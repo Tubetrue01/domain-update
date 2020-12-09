@@ -24,18 +24,23 @@ func task(config *config.Config) {
 		case <-tick:
 			pubIp := util.ObtainPubIp()
 
-			if ip, exists := util.ObtainIpFromPool(); exists {
-				log.Printf("ip 已存在，当前值为：%s, 当前本机公网 ip 为：%s\n", ip, pubIp)
-				if ip != pubIp {
-					log.Printf("ip 地址已经发生变化，准备进行推送...")
-					doNotify.DoNotify(config, pubIp)
+			if match, _ := util.IsValidIp(pubIp); match {
+				if ip, exists := util.ObtainIpFromPool(); exists {
+					log.Printf("ip 已存在，当前值为：%s, 当前本机公网 ip 为：%s\n", ip, pubIp)
+					if ip != pubIp {
+						log.Printf("ip 地址已经发生变化，准备进行推送...")
+						doNotify.DoNotify(config, pubIp)
+						util.UpdateIpPool(pubIp)
+					}
+				} else {
+					log.Printf("ip 并不存在， 更新 ip 池...")
 					util.UpdateIpPool(pubIp)
+					doNotify.DoNotifyBefore(config, pubIp)
 				}
 			} else {
-				log.Printf("ip 并不存在， 更新 ip 池...")
-				util.UpdateIpPool(pubIp)
-				doNotify.DoNotifyBefore(config, pubIp)
+				log.Printf("获取到的公网 ip 地址：[%s] 非法，准备下次任务...\n", pubIp)
 			}
+
 		}
 	}
 }
